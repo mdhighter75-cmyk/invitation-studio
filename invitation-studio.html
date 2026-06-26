@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invitation Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --cream:#FAF8F4;
+    --ink:#1A1612;
+    --gold:#C8962A;
+    --gold-light:#F0D98A;
+    --blush:#F2E8E4;
+    --sage:#8FAF8A;
+    --deep:#2C2420;
+    --mid:#6B5E54;
+    --border:#E8E0D8;
+    --white:#FFFFFF;
+  }
+  body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+
+  /* ========== SCREENS ========== */
+  .screen{display:none;min-height:100vh}
+  .screen.active{display:block}
+
+  /* ========== PAYWALL ========== */
+  #screen-paywall{background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+  .paywall-badge{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:20px}
+  .paywall-title{font-family:'Playfair Display',serif;font-size:clamp(36px,7vw,64px);color:var(--white);line-height:1.05;margin-bottom:16px}
+  .paywall-sub{font-size:16px;color:#A09080;max-width:400px;line-height:1.6;margin-bottom:40px}
+  .paywall-card{background:#2A231E;border:1px solid #3D3028;border-radius:20px;padding:32px;max-width:380px;width:100%;margin-bottom:24px}
+  .price-display{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:8px}
+  .price-dollar{font-size:28px;font-weight:600;color:var(--gold)}
+  .price-num{font-family:'Playfair Display',serif;font-size:72px;color:var(--white);line-height:1}
+  .price-sub{font-size:14px;color:#A09080;margin-bottom:24px}
+  .feature-list{list-style:none;text-align:left;margin-bottom:28px}
+  .feature-list li{font-size:14px;color:#C8BFB5;padding:6px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid #3D3028}
+  .feature-list li:last-child{border:none}
+  .feature-list li::before{content:'✦';color:var(--gold);font-size:10px;flex-shrink:0}
+  .btn-pay{width:100%;padding:16px;background:var(--gold);color:var(--ink);font-family:'Inter',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;border:none;border-radius:12px;cursor:pointer;transition:all .2s}
+  .btn-pay:hover{background:var(--gold-light);transform:translateY(-1px)}
+  .paywall-note{font-size:12px;color:#6B5E54}
+
+  /* ========== TOP NAV ========== */
+  .topnav{position:sticky;top:0;z-index:100;background:rgba(250,248,244,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:56px}
+  .nav-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--ink)}
+  .nav-logo span{color:var(--gold)}
+  .nav-actions{display:flex;gap:8px}
+  .nav-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+  .nav-btn-ghost{background:transparent;color:var(--mid);border:1px solid var(--border)}
+  .nav-btn-ghost:hover{background:var(--blush)}
+  .nav-btn-dark{background:var(--ink);color:var(--white)}
+  .nav-btn-dark:hover{background:var(--deep)}
+
+  /* ========== HOME ========== */
+  #screen-home{background:var(--cream)}
+  .home-hero{padding:28px 20px 20px}
+  .hero-greeting{font-size:13px;color:var(--mid);margin-bottom:4px}
+  .hero-title{font-family:'Playfair Display',serif;font-size:38px;line-height:1.05;color:var(--ink);margin-bottom:20px}
+  .create-card{background:var(--ink);border-radius:18px;padding:24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .2s}
+  .create-card:hover{transform:scale(1.01)}
+  .create-card-label{font-size:11px;font-weight:600;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .create-card-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--white)}
+  .create-card-plus{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--white);flex-shrink:0}
+  .section-header{display:flex;align-items:center;justify-content:space-between;padding:24px 20px 12px}
+  .section-title{font-family:'Playfair Display',serif;font-size:22px}
+  .section-link{font-size:13px;color:var(--gold);cursor:pointer;font-weight:500}
+  .pill-row{display:flex;gap:8px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none}
+  .pill-row::-webkit-scrollbar{display:none}
+  .pill{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);background:var(--white);color:var(--ink);transition:all .2s}
+  .pill.active,.pill:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+  .template-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px 100px}
+  .template-card{cursor:pointer;transition:transform .2s}
+  .template-card:hover{transform:scale(1.02)}
+  .template-thumb{border-radius:14px;overflow:hidden;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;position:relative}
+  .template-name{font-weight:600;font-size:14px;margin-top:8px;color:var(--ink)}
+  .template-style{font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--mid);text-transform:uppercase;margin-top:2px}
+
+  /* Template designs */
+  .t-modern-vows{background:#1B2340;color:#fff;font-family:'Playfair Display',serif;padding:20px;text-align:center}
+  .t-blooming{background:#FDE8EC;color:#8B1A2C;font-family:'Playfair Display',serif;padding:20px;text-align:center;border:2px solid #E8A0B0}
+  .t-golden-union{background:#1A1612;color:#C8962A;font-family:'Playfair Display',serif;padding:20px;text-align:center}
+  .t-party{background:linear-gradient(135deg,#8B2FC9,#E84393);color:#fff;font-family:'Inter',sans-serif;padding:20px;text-align:center}
+  .t-retro{background:#8B4513;color:#F4D58D;font-family:'Playfair Display',serif;padding:20px;text-align:center}
+  .t-little-one{background:#FFE4EC;color:#E84393;font-family:'Playfair Display',serif;padding:20px;text-align:center;border:3px solid #E84393}
+  .t-midnight{background:#0D1117;color:#E8D5FF;font-family:'DM Serif Display',serif;padding:20px;text-align:center}
+  .t-garden{background:linear-gradient(160deg,#E8F4E8,#F4F0E8);color:#2C4A2C;font-family:'Playfair Display',serif;padding:20px;text-align:center}
+  .t-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  .t-inner .big{font-size:clamp(18px,4vw,24px);font-weight:900;line-height:1.1}
+  .t-inner .med{font-size:11px;line-height:1.4;opacity:.85}
+  .t-inner .amp{font-size:30px}
+
+  /* ========== BOTTOM NAV ========== */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(250,248,244,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;z-index:90;padding-bottom:env(safe-area-inset-bottom)}
+  .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;gap:4px;font-size:10px;font-weight:500;color:var(--mid);transition:color .2s}
+  .bnav-item.active{color:var(--ink)}
+  .bnav-item svg{width:22px;height:22px}
+  .bnav-create{flex:1;display:flex;align-items:center;justify-content:center;padding:6px}
+  .bnav-create-btn{background:var(--ink);color:var(--white);font-size:12px;font-weight:600;padding:10px 16px;border-radius:20px;letter-spacing:0.3px;border:none;cursor:pointer}
+
+  /* ========== TEMPLATE MODAL ========== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-end}
+  .modal-overlay.open{display:flex}
+  .modal-sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 0 40px}
+  .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0}
+  .modal-preview{width:100%;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .modal-preview .t-inner .big{font-size:clamp(28px,6vw,48px)}
+  .modal-preview .t-inner .amp{font-size:52px}
+  .modal-preview .t-inner .med{font-size:14px}
+  .modal-info{padding:20px 20px 0}
+  .modal-title{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:4px}
+  .modal-tag{font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--mid);text-transform:uppercase;margin-bottom:16px}
+  .modal-actions{display:flex;gap:10px;padding:0 20px;margin-top:16px}
+  .btn-full{flex:1;padding:15px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+  .btn-primary{background:var(--ink);color:var(--white)}
+  .btn-primary:hover{background:var(--deep)}
+  .btn-secondary{background:var(--blush);color:var(--ink)}
+  .btn-close-modal{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.4);border:none;cursor:pointer;color:var(--white);font-size:18px;display:flex;align-items:center;justify-content:center}
+
+  /* ========== EDITOR ========== */
+  #screen-editor{background:var(--cream)}
+  .editor-topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .editor-back{width:36px;height:36px;border-radius:8px;background:var(--cream);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .editor-title{font-family:'Playfair Display',serif;font-size:16px;flex:1}
+  .editor-save{padding:8px 16px;background:var(--ink);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+  .canvas-area{padding:16px;display:flex;justify-content:center}
+  .invite-canvas{width:280px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+  .canvas-text-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  .editable-text{cursor:pointer;transition:outline .1s;border-radius:4px;padding:2px 4px;outline:2px solid transparent}
+  .editable-text:hover,.editable-text.selected{outline:2px solid rgba(200,150,42,.8)}
+  .editor-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--white);margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+  .editor-tab{padding:12px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--mid);white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+  .editor-tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+  .editor-panel{padding:16px;background:var(--white);min-height:200px;margin-bottom:80px}
+  .panel-section{margin-bottom:20px}
+  .panel-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mid);margin-bottom:10px}
+  .color-row{display:flex;gap:8px;flex-wrap:wrap}
+  .color-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s;flex-shrink:0}
+  .color-swatch:hover,.color-swatch.selected{transform:scale(1.15);border-color:var(--ink)}
+  .font-row{display:flex;flex-direction:column;gap:8px}
+  .font-opt{padding:10px 14px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;font-size:15px}
+  .font-opt:hover,.font-opt.selected{border-color:var(--ink);background:var(--blush)}
+  .text-input-group{margin-bottom:12px}
+  .text-input-group label{font-size:12px;color:var(--mid);display:block;margin-bottom:4px;font-weight:500}
+  .text-input-group input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;background:var(--cream);outline:none;transition:border-color .2s}
+  .text-input-group input:focus{border-color:var(--gold)}
+  .sticker-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .sticker-btn{aspect-ratio:1;font-size:24px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;background:var(--cream);display:flex;align-items:center;justify-content:center;transition:all .2s}
+  .sticker-btn:hover{background:var(--blush);border-color:var(--ink);transform:scale(1.1)}
+  .aspect-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .aspect-btn{padding:12px 8px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;background:var(--cream);text-align:center;font-size:11px;font-weight:600;color:var(--mid);transition:all .2s}
+  .aspect-btn:hover,.aspect-btn.selected{background:var(--ink);color:var(--white);border-color:var(--ink)}
+  .aspect-preview{font-size:20px;display:block;margin-bottom:4px}
+
+  /* ========== RSVP ========== */
+  #screen-rsvp{background:var(--cream);padding-bottom:100px}
+  .rsvp-header{padding:24px 20px 16px;background:var(--white);border-bottom:1px solid var(--border)}
+  .rsvp-title{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:4px}
+  .rsvp-sub{font-size:13px;color:var(--mid)}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px 20px}
+  .stat-card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--border);text-align:center}
+  .stat-num{font-family:'Playfair Display',serif;font-size:32px;color:var(--ink)}
+  .stat-label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mid);margin-top:2px}
+  .rsvp-section{padding:0 20px;margin-bottom:16px}
+  .rsvp-section-title{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mid);margin-bottom:10px;margin-top:16px}
+  .guest-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .guest-info{}
+  .guest-name{font-size:14px;font-weight:600;color:var(--ink)}
+  .guest-email{font-size:12px;color:var(--mid);margin-top:2px}
+  .guest-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .badge-yes{background:#E8F5E8;color:#2D7A2D}
+  .badge-no{background:#FDE8E8;color:#A02020}
+  .badge-maybe{background:#FFF3E0;color:#C06020}
+  .badge-pending{background:var(--blush);color:var(--mid)}
+  .deadline-card{background:var(--white);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .deadline-info .label{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mid)}
+  .deadline-info .value{font-family:'Playfair Display',serif;font-size:18px;color:var(--ink);margin-top:2px}
+  .btn-outline{padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-size:13px;font-weight:500;cursor:pointer;color:var(--ink);transition:all .2s}
+  .btn-outline:hover{border-color:var(--ink)}
+  .export-btn{width:100%;padding:14px;background:var(--ink);color:var(--white);border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .capacity-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:8px}
+  .capacity-fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:4px;transition:width .5s}
+
+  /* ========== SHARE ========== */
+  .share-modal .modal-sheet{padding:24px 20px 40px}
+  .share-title{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:6px}
+  .share-sub{font-size:14px;color:var(--mid);margin-bottom:24px}
+  .link-box{display:flex;align-items:center;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:12px;gap:10px;margin-bottom:16px}
+  .link-url{flex:1;font-size:13px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .link-copy{padding:8px 14px;background:var(--ink);color:var(--white);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .share-options{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+  .share-opt{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+  .share-opt-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .2s}
+  .share-opt-icon:hover{transform:scale(1.1)}
+  .share-opt-label{font-size:11px;color:var(--mid);font-weight:500}
+  .download-options{display:flex;flex-direction:column;gap:8px}
+  .dl-btn{padding:14px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+  .dl-primary{background:var(--ink);color:var(--white);border-color:var(--ink)}
+  .dl-secondary{background:var(--white);color:var(--ink);border-color:var(--border)}
+  .dl-secondary:hover{border-color:var(--ink)}
+
+  /* ========== TOAST ========== */
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--white);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ========== TEMPLATES PAGE ========== */
+  #screen-templates{background:var(--cream);padding-bottom:100px}
+
+  /* util */
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ======== PAYWALL ======== -->
+<div id="screen-paywall" class="screen active">
+  <div class="paywall-badge">✦ Invitation Studio</div>
+  <div class="paywall-title">Beautiful<br>Invitations,<br>One Price.</div>
+  <div class="paywall-sub">Design, customize, and send unlimited invitations for any occasion — forever.</div>
+  <div class="paywall-card">
+    <div class="price-display">
+      <span class="price-dollar">$</span>
+      <span class="price-num">5</span>
+    </div>
+    <div class="price-sub">one-time · unlimited access · no subscription</div>
+    <ul class="feature-list">
+      <li>Unlimited invitation designs</li>
+      <li>Premium template library (50+ designs)</li>
+      <li>RSVP management & tracking</li>
+      <li>Shareable links + high-quality downloads</li>
+      <li>Automated guest reminders</li>
+      <li>Custom fonts, colors & stickers</li>
+    </ul>
+    <button class="btn-pay" onclick="unlockApp()">Get Lifetime Access — $5</button>
+  </div>
+  <div class="paywall-note">Secure payment · Instant access · No recurring fees</div>
+</div>
+
+<!-- ======== HOME ======== -->
+<div id="screen-home" class="screen">
+  <div class="topnav">
+    <div class="nav-logo">Invitation<span>Studio</span></div>
+    <div class="nav-actions">
+      <button class="nav-btn nav-btn-ghost" onclick="showScreen('rsvp')">RSVPs</button>
+      <button class="nav-btn nav-btn-dark" onclick="openShare()">Share</button>
+    </div>
+  </div>
+
+  <div class="home-hero">
+    <div class="hero-greeting">Welcome back, Marvin</div>
+    <div class="hero-title">Invitation<br>Studio</div>
+    <div class="create-card" onclick="showScreen('templates')">
+      <div>
+        <div class="create-card-label">✦ Start Designing</div>
+        <div class="create-card-title">Create a new<br>invitation</div>
+      </div>
+      <div class="create-card-plus">+</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Browse occasions</div>
+    <div class="section-link" onclick="showScreen('templates')">All →</div>
+  </div>
+  <div class="pill-row">
+    <div class="pill active" onclick="filterTemplates('all',this)">All</div>
+    <div class="pill" onclick="filterTemplates('wedding',this)">Wedding</div>
+    <div class="pill" onclick="filterTemplates('birthday',this)">Birthday</div>
+    <div class="pill" onclick="filterTemplates('baby',this)">Baby Shower</div>
+    <div class="pill" onclick="filterTemplates('party',this)">Party</div>
+    <div class="pill" onclick="filterTemplates('holiday',this)">Holiday</div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Featured designs</div>
+    <div class="section-link" onclick="showScreen('templates')">All →</div>
+  </div>
+  <div class="template-grid" id="home-grid"></div>
+</div>
+
+<!-- ======== TEMPLATES ======== -->
+<div id="screen-templates" class="screen">
+  <div class="topnav">
+    <button class="nav-btn nav-btn-ghost" onclick="showScreen('home')" style="padding:8px 12px">← Back</button>
+    <div class="nav-logo">Templates</div>
+    <div style="width:70px"></div>
+  </div>
+  <div class="pill-row" style="padding-top:12px">
+    <div class="pill active" onclick="filterTemplates('all',this)">All</div>
+    <div class="pill" onclick="filterTemplates('wedding',this)">Wedding</div>
+    <div class="pill" onclick="filterTemplates('birthday',this)">Birthday</div>
+    <div class="pill" onclick="filterTemplates('baby',this)">Baby Shower</div>
+    <div class="pill" onclick="filterTemplates('party',this)">Party</div>
+    <div class="pill" onclick="filterTemplates('holiday',this)">Holiday</div>
+  </div>
+  <div class="template-grid" id="templates-grid" style="padding-top:8px"></div>
+</div>
+
+<!-- ======== EDITOR ======== -->
+<div id="screen-editor" class="screen">
+  <div class="editor-topbar">
+    <button class="editor-back" onclick="showScreen('templates')">←</button>
+    <div class="editor-title" id="editor-template-name">Editing</div>
+    <button class="editor-save" onclick="openShare()">Share</button>
+  </div>
+
+  <div class="canvas-area">
+    <div class="invite-canvas" id="invite-canvas">
+      <div class="canvas-text-overlay" id="canvas-overlay">
+        <!-- dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <div class="editor-tabs">
+    <div class="editor-tab active" onclick="switchTab('text',this)">✏️ Text</div>
+    <div class="editor-tab" onclick="switchTab('colors',this)">🎨 Colors</div>
+    <div class="editor-tab" onclick="switchTab('fonts',this)">Aa Fonts</div>
+    <div class="editor-tab" onclick="switchTab('stickers',this)">✨ Stickers</div>
+    <div class="editor-tab" onclick="switchTab('layout',this)">⬜ Format</div>
+  </div>
+
+  <div class="editor-panel" id="editor-panel">
+    <!-- dynamically populated -->
+  </div>
+</div>
+
+<!-- ======== RSVP ======== -->
+<div id="screen-rsvp" class="screen">
+  <div class="topnav">
+    <button class="nav-btn nav-btn-ghost" onclick="showScreen('home')" style="padding:8px 12px">← Back</button>
+    <div class="nav-logo">RSVP Manager</div>
+    <div style="width:70px"></div>
+  </div>
+  <div class="rsvp-header">
+    <div class="rsvp-title">Guest Responses</div>
+    <div class="rsvp-sub">Ava & Noah · Wedding · Oct 12</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" style="color:#2D7A2D">12</div>
+      <div class="stat-label">Attending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#A02020">3</div>
+      <div class="stat-label">Declined</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">8</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <div class="rsvp-section">
+    <div class="rsvp-section-title">Guest capacity</div>
+    <div class="deadline-card">
+      <div class="deadline-info">
+        <div class="label">Capacity</div>
+        <div class="value">15 / 25 guests</div>
+      </div>
+      <button class="btn-outline" onclick="showToast('Capacity updated!')">Edit</button>
+    </div>
+    <div class="capacity-bar"><div class="capacity-fill" style="width:60%"></div></div>
+
+    <div class="rsvp-section-title" style="margin-top:20px">RSVP deadline</div>
+    <div class="deadline-card">
+      <div class="deadline-info">
+        <div class="label">Deadline</div>
+        <div class="value">September 28, 2025</div>
+      </div>
+      <button class="btn-outline" onclick="showToast('Reminder sent to 8 pending guests!')">Remind</button>
+    </div>
+  </div>
+
+  <div class="rsvp-section">
+    <div class="rsvp-section-title">Guest list</div>
+    <div id="guest-list"></div>
+    <button class="export-btn" onclick="showToast('Guest list exported as CSV!')">⬇ Export Guest List / Responses</button>
+  </div>
+</div>
+
+<!-- ======== TEMPLATE MODAL ======== -->
+<div class="modal-overlay" id="template-modal" onclick="closeModal(event)">
+  <div class="modal-sheet" style="position:relative">
+    <div class="modal-handle"></div>
+    <div class="modal-preview" id="modal-preview-area"></div>
+    <div class="modal-info">
+      <div class="modal-title" id="modal-tname"></div>
+      <div class="modal-tag" id="modal-tstyle"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-full btn-secondary" onclick="closeModal()">Preview ↗</button>
+      <button class="btn-full btn-primary" onclick="openEditor()">Customize →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== SHARE MODAL ======== -->
+<div class="modal-overlay share-modal" id="share-modal" onclick="closeShare(event)">
+  <div class="modal-sheet" style="padding:24px 20px 40px;position:relative">
+    <div class="modal-handle"></div>
+    <br>
+    <div class="share-title">Share your invitation</div>
+    <div class="share-sub">Send a link or download a high-quality image</div>
+
+    <div class="link-box">
+      <div class="link-url">invitestudio.app/invite/ava-noah-wedding-oct12</div>
+      <button class="link-copy" onclick="showToast('Link copied!')">Copy</button>
+    </div>
+
+    <div class="share-options">
+      <div class="share-opt" onclick="showToast('Opening Messages...')">
+        <div class="share-opt-icon" style="background:#E8F4FF">💬</div>
+        <div class="share-opt-label">Messages</div>
+      </div>
+      <div class="share-opt" onclick="showToast('Opening WhatsApp...')">
+        <div class="share-opt-icon" style="background:#E8FFE8">📱</div>
+        <div class="share-opt-label">WhatsApp</div>
+      </div>
+      <div class="share-opt" onclick="showToast('Opening Email...')">
+        <div class="share-opt-icon" style="background:#FFF0E8">📧</div>
+        <div class="share-opt-label">Email</div>
+      </div>
+      <div class="share-opt" onclick="showToast('Opening Instagram...')">
+        <div class="share-opt-icon" style="background:#FDE8FF">📸</div>
+        <div class="share-opt-label">Instagram</div>
+      </div>
+    </div>
+
+    <div class="download-options">
+      <button class="dl-btn dl-primary" onclick="showToast('Downloading high-quality PNG...')">⬇ Download PNG (4K)</button>
+      <button class="dl-btn dl-secondary" onclick="showToast('Downloading PDF...')">⬇ Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== BOTTOM NAV ======== -->
+<div class="bottom-nav" id="bottom-nav">
+  <div class="bnav-item active" id="bnav-home" onclick="showScreen('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </div>
+  <div class="bnav-item" id="bnav-templates" onclick="showScreen('templates')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Templates
+  </div>
+  <div class="bnav-create">
+    <button class="bnav-create-btn" onclick="showScreen('templates')">+ Create</button>
+  </div>
+  <div class="bnav-item" id="bnav-rsvp" onclick="showScreen('rsvp')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    RSVPs
+  </div>
+  <div class="bnav-item" onclick="openShare()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Share
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== DATA ==========
+const templates = [
+  {id:'modern-vows',name:'Modern Vows',style:'Modern',occasion:'wedding',
+   bg:'#1B2340',fg:'#FFFFFF',accent:'#A8C0FF',
+   html:`<div class="t-inner" style="color:#fff;font-family:'Playfair Display',serif">
+     <div style="font-size:13px;letter-spacing:3px;opacity:.6;margin-bottom:8px">WEDDING</div>
+     <div class="big">James &<br>Sofia</div>
+     <div style="width:40px;height:1px;background:#A8C0FF;margin:12px auto"></div>
+     <div class="med">Saturday, the Twelfth<br>of October · Four PM<br>Rosewood Estate</div>
+   </div>`},
+  {id:'blooming-love',name:'Blooming Love',style:'Floral',occasion:'wedding',
+   bg:'#FDE8EC',fg:'#8B1A2C',accent:'#E8A0B0',
+   html:`<div class="t-inner" style="border:2px solid #E8A0B0;margin:12px;border-radius:8px;padding:16px;height:calc(100% - 24px)">
+     <div style="font-size:22px;color:#E84393">🌸</div>
+     <div class="amp" style="color:#8B1A2C;font-family:'Playfair Display',serif">&</div>
+     <div class="big" style="color:#8B1A2C;font-family:'Playfair Display',serif">Liam</div>
+     <div class="med" style="color:#8B1A2C">Request the pleasure<br>of your company</div>
+   </div>`},
+  {id:'golden-union',name:'Golden Union',style:'Luxury',occasion:'wedding',
+   bg:'#1A1612',fg:'#C8962A',accent:'#F0D98A',
+   html:`<div class="t-inner" style="color:#C8962A;font-family:'Playfair Display',serif">
+     <div style="font-size:11px;letter-spacing:3px;opacity:.7;margin-bottom:10px">EST. 2025</div>
+     <div class="big">Ava &<br>Noah</div>
+     <div style="width:60px;height:1px;background:#C8962A;margin:12px auto"></div>
+     <div class="med" style="opacity:.8">The beginning of forever<br>October 12 · 5 PM</div>
+   </div>`},
+  {id:'lets-party',name:"Let's Party",style:'Modern',occasion:'party',
+   bg:'linear-gradient(135deg,#8B2FC9,#E84393)',fg:'#FFFFFF',accent:'#FFD700',
+   html:`<div class="t-inner" style="color:#fff;font-family:'Inter',sans-serif">
+     <div style="font-size:28px;margin-bottom:8px">🎉</div>
+     <div class="big" style="font-weight:900;font-size:26px">You're<br>Invited!</div>
+     <div class="med" style="margin-top:8px">Join us for cocktails<br>& cake · Friday · 8 PM</div>
+   </div>`},
+  {id:'retro-bash',name:'Retro Bash',style:'Vintage',occasion:'birthday',
+   bg:'#8B4513',fg:'#F4D58D',accent:'#F0A830',
+   html:`<div class="t-inner" style="color:#F4D58D;font-family:'Playfair Display',serif">
+     <div style="font-size:28px;margin-bottom:6px">🎂</div>
+     <div class="big">Happy<br>Birthday</div>
+     <div class="med" style="margin-top:8px">A vintage soirée<br>Saturday · 7 PM</div>
+   </div>`},
+  {id:'little-one',name:'Little One',style:'Minimal',occasion:'baby',
+   bg:'#FFE4EC',fg:'#E84393',accent:'#FFB3C8',
+   html:`<div class="t-inner" style="border:3px solid #E84393;margin:10px;border-radius:8px;padding:16px;height:calc(100%-20px)">
+     <div style="font-size:26px;margin-bottom:6px">👶</div>
+     <div class="big" style="color:#E84393;font-family:'Playfair Display',serif">Baby<br>Shower</div>
+     <div class="med" style="color:#E84393;margin-top:8px">Please join us<br>Sunday · 2 PM</div>
+   </div>`},
+  {id:'midnight-garden',name:'Midnight Garden',style:'Luxury',occasion:'party',
+   bg:'#0D1117',fg:'#E8D5FF',accent:'#9B6DFF',
+   html:`<div class="t-inner" style="color:#E8D5FF;font-family:'DM Serif Display',serif">
+     <div style="font-size:22px;margin-bottom:8px">🌙</div>
+     <div class="big" style="font-size:22px">An Evening<br>in the Garden</div>
+     <div style="width:40px;height:1px;background:#9B6DFF;margin:12px auto"></div>
+     <div class="med" style="opacity:.7">Cocktails & Candlelight<br>Saturday · 8 PM</div>
+   </div>`},
+  {id:'garden-party',name:'Garden Party',style:'Floral',occasion:'party',
+   bg:'linear-gradient(160deg,#E8F4E8,#F4F0E8)',fg:'#2C4A2C',accent:'#8FAF8A',
+   html:`<div class="t-inner" style="color:#2C4A2C;font-family:'Playfair Display',serif">
+     <div style="font-size:22px;margin-bottom:8px">🌿</div>
+     <div class="big" style="font-size:22px">Garden<br>Celebration</div>
+     <div class="med" style="margin-top:8px">You are cordially invited<br>Sunday · 2 PM</div>
+   </div>`},
+  {id:'cheers',name:'Cheers!',style:'Modern',occasion:'birthday',
+   bg:'#FFD700',fg:'#1A1612',accent:'#FF6B00',
+   html:`<div class="t-inner" style="color:#1A1612;font-family:'Inter',sans-serif;font-weight:900">
+     <div style="font-size:32px;margin-bottom:6px">🥂</div>
+     <div class="big" style="font-size:28px">CHEERS!</div>
+     <div class="med" style="font-weight:500;margin-top:8px">Birthday Celebration<br>Friday · 7 PM</div>
+   </div>`},
+  {id:'snowflake',name:'Winter Gala',style:'Elegant',occasion:'holiday',
+   bg:'#E8F0FF',fg:'#1A2040',accent:'#6080C0',
+   html:`<div class="t-inner" style="color:#1A2040;font-family:'Playfair Display',serif">
+     <div style="font-size:28px;margin-bottom:6px">❄️</div>
+     <div class="big" style="font-size:22px">Winter<br>Gala</div>
+     <div class="med" style="margin-top:8px">You are warmly invited<br>December 20 · 7 PM</div>
+   </div>`},
+  {id:'bridal-bloom',name:'Bridal Bloom',style:'Floral',occasion:'wedding',
+   bg:'#FFF8F0',fg:'#8B3A3A',accent:'#DFA090',
+   html:`<div class="t-inner" style="color:#8B3A3A;font-family:'Playfair Display',serif">
+     <div style="font-size:22px;margin-bottom:4px">💐</div>
+     <div style="font-size:11px;letter-spacing:2px;opacity:.7;margin-bottom:6px">BRIDAL SHOWER</div>
+     <div class="big" style="font-size:22px">Emma's<br>Big Day</div>
+     <div class="med" style="margin-top:8px;opacity:.8">Join us for mimosas<br>& celebration</div>
+   </div>`},
+  {id:'neon-night',name:'Neon Night',style:'Modern',occasion:'birthday',
+   bg:'#0A0A0A',fg:'#00FF88',accent:'#FF0080',
+   html:`<div class="t-inner" style="font-family:'Inter',sans-serif;font-weight:900">
+     <div style="color:#FF0080;font-size:12px;letter-spacing:3px;margin-bottom:8px">BIRTHDAY</div>
+     <div class="big" style="color:#00FF88;font-size:26px">PARTY<br>TIME</div>
+     <div class="med" style="color:#FFFFFF;font-weight:400;margin-top:8px">Tonight · 9 PM<br>Club Neon</div>
+   </div>`},
+];
+
+const guests = [
+  {name:'Sarah Johnson',email:'sarah@email.com',status:'yes'},
+  {name:'Marcus Williams',email:'marcus@email.com',status:'yes'},
+  {name:'Priya Patel',email:'priya@email.com',status:'maybe'},
+  {name:'James Chen',email:'jchen@email.com',status:'no'},
+  {name:'Aaliyah Davis',email:'aaliyah@email.com',status:'pending'},
+  {name:'Robert Kim',email:'rob@email.com',status:'yes'},
+];
+
+// ========== STATE ==========
+let currentFilter = 'all';
+let selectedTemplate = null;
+let editorState = {
+  name1:'Ava & Noah', tagline:'The beginning of forever',
+  date:'October 12, 2025', time:'5:00 PM', venue:'Rosewood Estate',
+  bgColor:'', textColor:'', font:'Playfair Display', stickers:[], selectedField:null
+};
+let currentTab = 'text';
+
+// ========== INIT ==========
+function unlockApp(){
+  showScreen('home');
+  renderHomeGrid();
+  renderTemplatesGrid();
+  renderGuests();
+}
+
+function renderHomeGrid(){
+  const grid = document.getElementById('home-grid');
+  const shown = templates.slice(0,6);
+  grid.innerHTML = shown.map(t=>templateCardHTML(t)).join('');
+}
+
+function renderTemplatesGrid(filter='all'){
+  const grid = document.getElementById('templates-grid');
+  const filtered = filter==='all' ? templates : templates.filter(t=>t.occasion===filter);
+  grid.innerHTML = filtered.map(t=>templateCardHTML(t)).join('');
+}
+
+function templateCardHTML(t){
+  return `<div class="template-card" onclick="openTemplateModal('${t.id}')">
+    <div class="template-thumb" style="background:${t.bg}">${t.html}</div>
+    <div class="template-name">${t.name}</div>
+    <div class="template-style">${t.style}</div>
+  </div>`;
+}
+
+function filterTemplates(f,el){
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderTemplatesGrid(f);
+  if(document.getElementById('home-grid')){
+    const shown = f==='all' ? templates.slice(0,6) : templates.filter(t=>t.occasion===f).slice(0,6);
+    document.getElementById('home-grid').innerHTML = shown.map(t=>templateCardHTML(t)).join('');
+  }
+}
+
+// ========== SCREENS ==========
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  const nb = document.getElementById('bnav-'+name);
+  if(nb) nb.classList.add('active');
+  const bnav = document.getElementById('bottom-nav');
+  bnav.style.display = name==='editor' ? 'none' : 'flex';
+}
+
+// ========== MODAL ==========
+function openTemplateModal(id){
+  selectedTemplate = templates.find(t=>t.id===id);
+  if(!selectedTemplate) return;
+  const preview = document.getElementById('modal-preview-area');
+  preview.style.background = selectedTemplate.bg;
+  preview.innerHTML = selectedTemplate.html;
+  // enlarge text in modal
+  preview.querySelectorAll('.big').forEach(el=>el.style.fontSize='clamp(28px,6vw,48px)');
+  preview.querySelectorAll('.amp').forEach(el=>el.style.fontSize='52px');
+  preview.querySelectorAll('.med').forEach(el=>el.style.fontSize='14px');
+  document.getElementById('modal-tname').textContent = selectedTemplate.name;
+  document.getElementById('modal-tstyle').textContent = selectedTemplate.style + ' · ' + selectedTemplate.occasion.replace('baby','Baby Shower').replace('wedding','Wedding').replace('birthday','Birthday').replace('party','Party').replace('holiday','Holiday');
+  document.getElementById('template-modal').classList.add('open');
+}
+
+function closeModal(e){
+  if(!e || e.target===document.getElementById('template-modal')){
+    document.getElementById('template-modal').classList.remove('open');
+  }
+}
+
+// ========== EDITOR ==========
+function openEditor(){
+  if(!selectedTemplate) return;
+  closeModal();
+  document.getElementById('editor-template-name').textContent = selectedTemplate.name;
+  const canvas = document.getElementById('invite-canvas');
+  canvas.style.background = selectedTemplate.bg;
+  const overlay = document.getElementById('canvas-overlay');
+  overlay.innerHTML = `
+    <div class="editable-text" id="et-name" onclick="selectField('name1')" style="font-family:'${selectedTemplate.id.includes('party')||selectedTemplate.id.includes('neon')?'Inter':'Playfair Display'}',serif;font-size:clamp(20px,5vw,30px);font-weight:900;color:${selectedTemplate.fg};margin-bottom:8px">${editorState.name1}</div>
+    <div style="width:40px;height:1px;background:${selectedTemplate.accent||selectedTemplate.fg};margin:8px auto;opacity:.6"></div>
+    <div class="editable-text" id="et-tagline" onclick="selectField('tagline')" style="font-size:12px;color:${selectedTemplate.fg};opacity:.8;margin-bottom:4px">${editorState.tagline}</div>
+    <div class="editable-text" id="et-date" onclick="selectField('date')" style="font-size:13px;font-weight:600;color:${selectedTemplate.fg};margin-top:6px">${editorState.date}</div>
+    <div class="editable-text" id="et-venue" onclick="selectField('venue')" style="font-size:12px;color:${selectedTemplate.fg};opacity:.75;margin-top:4px">${editorState.venue}</div>
+    <div id="sticker-layer" style="position:absolute;bottom:16px;right:16px;font-size:24px">${editorState.stickers.join(' ')}</div>
+  `;
+  switchTab('text', document.querySelector('.editor-tab'));
+  showScreen('editor');
+}
+
+function selectField(field){
+  editorState.selectedField = field;
+  document.querySelectorAll('.editable-text').forEach(e=>e.classList.remove('selected'));
+  const map = {name1:'et-name',tagline:'et-tagline',date:'et-date',venue:'et-venue'};
+  const el = document.getElementById(map[field]);
+  if(el) el.classList.add('selected');
+}
+
+function switchTab(tab, el){
+  currentTab = tab;
+  document.querySelectorAll('.editor-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderPanel();
+}
+
+function renderPanel(){
+  const p = document.getElementById('editor-panel');
+  if(currentTab==='text'){
+    p.innerHTML = `
+      <div class="panel-section">
+        <div class="panel-label">Edit Text Fields</div>
+        ${['name1','tagline','date','time','venue'].map(f=>`
+          <div class="text-input-group">
+            <label>${{name1:'Names / Title',tagline:'Tagline',date:'Date',time:'Time',venue:'Venue / Location'}[f]}</label>
+            <input value="${editorState[f]}" oninput="updateField('${f}',this.value)" onclick="selectField('${f}')">
+          </div>
+        `).join('')}
+      </div>`;
+  } else if(currentTab==='colors'){
+    const bgs = ['#1B2340','#1A1612','#FFE4EC','#FDE8EC','#FFF8F0','#0D1117','#8B4513','#FFD700','#0A0A0A','#E8F4E8','#2C1654','#E8F0FF'];
+    const txts = ['#FFFFFF','#C8962A','#E84393','#8B1A2C','#2C4A2C','#E8D5FF','#F4D58D','#1A1612','#00FF88'];
+    p.innerHTML = `
+      <div class="panel-section">
+        <div class="panel-label">Background Color</div>
+        <div class="color-row">${bgs.map(c=>`<div class="color-swatch${editorState.bgColor===c?' selected':''}" style="background:${c};${c==='#FFFFFF'?'border:1.5px solid #ddd':''}" onclick="applyBg('${c}')"></div>`).join('')}</div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-label">Text Color</div>
+        <div class="color-row">${txts.map(c=>`<div class="color-swatch${editorState.textColor===c?' selected':''}" style="background:${c};${c==='#FFFFFF'?'border:1.5px solid #ddd':''}" onclick="applyTextColor('${c}')"></div>`).join('')}</div>
+      </div>`;
+  } else if(currentTab==='fonts'){
+    const fonts = [
+      {name:'Playfair Display',label:'Playfair Display — Classic Serif'},
+      {name:'DM Serif Display',label:'DM Serif — Editorial'},
+      {name:'Inter',label:'Inter — Clean Modern'},
+    ];
+    p.innerHTML = `
+      <div class="panel-section">
+        <div class="panel-label">Choose Font</div>
+        <div class="font-row">${fonts.map(f=>`<div class="font-opt${editorState.font===f.name?' selected':''}" style="font-family:'${f.name}',serif" onclick="applyFont('${f.name}')">${f.label}</div>`).join('')}</div>
+      </div>`;
+  } else if(currentTab==='stickers'){
+    const stickers = ['🌸','💐','🎉','✨','🥂','💍','👶','🌿','❄️','🎂','🕊️','💫','🌙','🦋','🎊','🌹','🏡','💌','🎵','🌟'];
+    p.innerHTML = `
+      <div class="panel-section">
+        <div class="panel-label">Add Stickers & Decorations</div>
+        <div class="sticker-grid">${stickers.map(s=>`<div class="sticker-btn" onclick="addSticker('${s}')">${s}</div>`).join('')}</div>
+      </div>`;
+  } else if(currentTab==='layout'){
+    const aspects = [
+      {label:'Portrait',ratio:'3:4',icon:'📱',class:'portrait'},
+      {label:'Square',ratio:'1:1',icon:'⬜',class:'square'},
+      {label:'Story',ratio:'9:16',icon:'📸',class:'story'},
+    ];
+    p.innerHTML = `
+      <div class="panel-section">
+        <div class="panel-label">Preview Format</div>
+        <div class="aspect-grid">${aspects.map(a=>`<div class="aspect-btn" onclick="showToast('${a.label} format selected!')"><span class="aspect-preview">${a.icon}</span>${a.label}<br><span style="opacity:.6">${a.ratio}</span></div>`).join('')}</div>
+      </div>
+      <div class="panel-section" style="margin-top:8px">
+        <div class="panel-label">Optimized For</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${['Instagram Post (1080×1080)','Instagram Story (1080×1920)','Print (4×6 in @ 300 DPI)','Digital Invite (1200×1600)'].map(p=>`<div class="font-opt" onclick="showToast('${p} format selected!')">${p}</div>`).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+function updateField(field, val){
+  editorState[field] = val;
+  const map = {name1:'et-name',tagline:'et-tagline',date:'et-date',time:'et-time',venue:'et-venue'};
+  const el = document.getElementById(map[field]);
+  if(el) el.textContent = val;
+}
+
+function applyBg(color){
+  editorState.bgColor = color;
+  document.getElementById('invite-canvas').style.background = color;
+  renderPanel();
+}
+
+function applyTextColor(color){
+  editorState.textColor = color;
+  document.querySelectorAll('.editable-text').forEach(el=>el.style.color=color);
+  renderPanel();
+}
+
+function applyFont(font){
+  editorState.font = font;
+  document.querySelectorAll('.editable-text').forEach(el=>el.style.fontFamily=`'${font}',serif`);
+  renderPanel();
+}
+
+function addSticker(s){
+  editorState.stickers.push(s);
+  const layer = document.getElementById('sticker-layer');
+  if(layer) layer.textContent = editorState.stickers.join(' ');
+  showToast(s + ' added!');
+}
+
+// ========== SHARE ==========
+function openShare(){
+  document.getElementById('share-modal').classList.add('open');
+}
+function closeShare(e){
+  if(!e || e.target===document.getElementById('share-modal'))
+    document.getElementById('share-modal').classList.remove('open');
+}
+
+// ========== RSVP ==========
+function renderGuests(){
+  const list = document.getElementById('guest-list');
+  if(!list) return;
+  const statusMap = {yes:'badge-yes',no:'badge-no',maybe:'badge-maybe',pending:'badge-pending'};
+  const labelMap = {yes:'Attending',no:'Declined',maybe:'Maybe',pending:'Pending'};
+  list.innerHTML = guests.map(g=>`
+    <div class="guest-card">
+      <div class="guest-info">
+        <div class="guest-name">${g.name}</div>
+        <div class="guest-email">${g.email}</div>
+      </div>
+      <div class="guest-badge ${statusMap[g.status]}">${labelMap[g.status]}</div>
+    </div>`).join('');
+}
+
+// ========== TOAST ==========
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ========== INIT ==========
+window.onload = ()=>{
+  // show paywall first — already set active
+};
+</script>
+</body>
+</html>
