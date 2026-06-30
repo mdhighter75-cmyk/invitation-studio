@@ -581,9 +581,6 @@ let currentTab = 'text';
 function unlockApp(){
   window.location.href = 'https://highter.gumroad.com/l/pnzbym';
 }
-
-function renderHomeGrid(){
-  const grid = document.getElementById('home-grid');
   const shown = templates.slice(0,6);
   grid.innerHTML = shown.map(t=>templateCardHTML(t)).join('');
 }
